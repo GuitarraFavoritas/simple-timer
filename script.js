@@ -1,99 +1,84 @@
-let seconds = 5; // initial timer value
+// Get the URL parameters
+const urlParams = new URLSearchParams(window.location.search);
+
+// Get the initial time from the 'time' query parameter (in seconds)
+const initialTime = urlParams.get('time') ? parseInt(urlParams.get('time')) : 5;
+
+let seconds = initialTime; // Use the value from the query or default to 5 seconds
 let timerInterval = null;
 let isRunning = false;
 let isPaused = false;
 
-// Get the timer display element
+// Get the DOM elements
 const timerDisplay = document.getElementById('timer-display');
-
-// Get the start button element
 const startButton = document.getElementById('start-button');
-
-// Get the stop button element
 const stopButton = document.getElementById('stop-button');
-
-// Get the bell sound element
 const bellSound = document.getElementById('bell-sound');
 
-// Function to update the timer display
+// Update the timer display
 function updateTimerDisplay() {
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-  timerDisplay.value = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    timerDisplay.value = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
 }
 
-// Function to start the timer
+// Start the timer
 function startTimer() {
-  isRunning = true;
-  isPaused = false;
-  timerInterval = setInterval(() => {
-    console.log('Timer interval fired');
-    seconds--;
-    updateTimerDisplay();
-    if (seconds === 0) {
-      stopTimer();
-      bellSound.play().catch((error) => {
-        console.error('Error playing bell sound:', error);
-      });
-      startButton.innerText = 'Iniciar'; // Reset the pause button to Start
-      seconds = 5; // Reset the timer value
-      updateTimerDisplay(); // Update the timer display with the new value
-      toastr.success('Finished!'); // Show a toast notification with the message "Finished!"
-    }
-  }, 1000);
+    isRunning = true;
+    isPaused = false;
+    timerInterval = setInterval(() => {
+        seconds--;
+        updateTimerDisplay();
+        if (seconds === 0) {
+            stopTimer();
+            bellSound.play().catch((error) => console.error('Error playing bell sound:', error));
+            startButton.innerText = 'Iniciar';
+            seconds = initialTime; // Reset to the initial time
+            updateTimerDisplay();
+            toastr.success('Finished!');
+        }
+    }, 1000);
 }
 
-// Function to stop the timer
+// Stop the timer
 function stopTimer() {
-  console.log('Timer stopped');
-  clearInterval(timerInterval);
-  isRunning = false;
-  isPaused = false;
+    clearInterval(timerInterval);
+    isRunning = false;
+    isPaused = false;
 }
 
-// Function to pause the timer
+// Pause the timer
 function pauseTimer() {
-  isPaused = true;
-  clearInterval(timerInterval);
+    isPaused = true;
+    clearInterval(timerInterval);
 }
 
-// Function to resume the timer
+// Resume the timer
 function resumeTimer() {
-  isPaused = false;
-  timerInterval = setInterval(() => {
-    console.log('Timer interval fired');
-    seconds--;
-    updateTimerDisplay();
-    if (seconds === 0) {
-      stopTimer();
-      bellSound.play().catch((error) => {
-        console.error('Error playing bell sound:', error);
-      });
-      startButton.innerText = 'Iniciar'; // Reset the pause button to Start
-      seconds = 5; // Reset the timer value
-      updateTimerDisplay(); // Update the timer display with the new value
-      toastr.success('Finished!'); // Show a toast notification with the message "Finished!"
-    }
-  }, 1000);
+    isPaused = false;
+    startTimer();
 }
 
-// Add event listeners to the start and stop buttons
+// Event listeners for buttons
 startButton.addEventListener('click', () => {
-  if (!isRunning) {
-    startTimer();
-    startButton.innerText = 'Pausar';
-  } else if (isRunning && !isPaused) {
-    pauseTimer();
-    startButton.innerText = 'Continuar';
-  } else if (isRunning && isPaused) {
-    resumeTimer();
-    startButton.innerText = 'Pausar';
-  }
+    if (!isRunning) {
+        startTimer();
+        startButton.innerText = 'Pausar';
+    } else if (isRunning && !isPaused) {
+        pauseTimer();
+        startButton.innerText = 'Continuar';
+    } else if (isRunning && isPaused) {
+        resumeTimer();
+        startButton.innerText = 'Pausar';
+    }
 });
 
 stopButton.addEventListener('click', () => {
-  stopTimer();
-  seconds = 5; // reset the timer value
-  updateTimerDisplay();
-  startButton.innerText = 'Iniciar';
+    stopTimer();
+    seconds = initialTime; // Reset the timer to initial time
+    updateTimerDisplay();
+    startButton.innerText = 'Iniciar';
 });
+
+// Initialize the display with the correct time
+updateTimerDisplay();
