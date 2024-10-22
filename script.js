@@ -59,10 +59,27 @@ function resumeTimer() {
     startTimer();
 }
 
+// Track whether the user has manually entered a value
+let userEnteredValue = false;
+
+// Event listeners for buttons
+// Event listeners for buttons
 // Event listeners for buttons
 startButton.addEventListener('click', () => {
     if (!isRunning) {
-        startTimer();
+        const timerDisplayValue = parseInt(timerDisplay.value);
+        if (timerDisplayValue !== initialTime) {
+            userEnteredValue = true;
+        }
+        if (userEnteredValue) {
+            // Don't reset the timer to the initial value
+            startTimer();
+        } else {
+            // Reset the timer to the initial value
+            seconds = initialTime;
+            updateTimerDisplay();
+            startTimer();
+        }
         startButton.innerText = 'Pausar';
     } else if (isRunning && !isPaused) {
         pauseTimer();
@@ -82,3 +99,8 @@ stopButton.addEventListener('click', () => {
 
 // Initialize the display with the correct time
 updateTimerDisplay();
+
+// Event listener to the timerDisplay input field to track user input
+timerDisplay.addEventListener('input', () => {
+    userEnteredValue = true;
+  });
