@@ -1,19 +1,17 @@
-// Get the URL parameters
-const urlParams = new URLSearchParams(window.location.search);
-
-// Get the initial time from the 'time' query parameter (in seconds)
-const initialTime = urlParams.get('time') ? parseInt(urlParams.get('time')) : 5;
-
-let seconds = initialTime; // Use the value from the query or default to 5 seconds
-let timerInterval = null;
+// Variables
+let initialTime = 3 * 60; // 25 minutes in seconds
+let seconds = initialTime;
 let isRunning = false;
 let isPaused = false;
+let timerInterval;
 
-// Get the DOM elements
+// Get the timer display element
 const timerDisplay = document.getElementById('timer-display');
+
+// Get the start and stop buttons
 const startButton = document.getElementById('start-button');
-const stopButton = document.getElementById('stop-button');
-const bellSound = document.getElementById('bell-sound');
+const stopButton = document.getElementById('reset-button');
+const resetButton = document.getElementById('reset-button');
 
 // Update the timer display
 function updateTimerDisplay() {
@@ -33,74 +31,76 @@ function startTimer() {
             stopTimer();
             bellSound.play().catch((error) => console.error('Error playing bell sound:', error));
             startButton.innerText = 'Iniciar';
-            seconds = initialTime; // Reset to the initial time
             updateTimerDisplay();
             toastr.success('Finished!');
         }
     }, 1000);
 }
 
-// Stop the timer
-function stopTimer() {
-    clearInterval(timerInterval);
-    isRunning = false;
-    isPaused = false;
-}
-
 // Pause the timer
 function pauseTimer() {
+    isRunning = false;
     isPaused = true;
     clearInterval(timerInterval);
+    startButton.innerText = 'Continuar';
 }
 
 // Resume the timer
 function resumeTimer() {
+    isRunning = true;
     isPaused = false;
-    startTimer();
+    timerInterval = setInterval(() => {
+        seconds--;
+        updateTimerDisplay();
+        if (seconds === 0) {
+            stopTimer();
+            bellSound.play().catch((error) => console.error('Error playing bell sound:', error));
+            startButton.innerText = 'Iniciar';
+            updateTimerDisplay();
+            toastr.success('Finished!');
+        }
+    }, 1000);
+    startButton.innerText = 'Pausar';
 }
 
-// Track whether the user has manually entered a value
-let userEnteredValue = false;
+// Stop the timer
+function stopTimer() {
+    isRunning = false;
+    clearInterval(timerInterval);
+}
 
-// Event listeners for buttons
-// Event listeners for buttons
+// Reset the timer
+function resetTimer() {
+    stopTimer();
+    seconds = initialTime;
+    updateTimerDisplay();
+    startButton.innerText = 'Iniciar';
+}
+
 // Event listeners for buttons
 startButton.addEventListener('click', () => {
     if (!isRunning) {
-        const timerDisplayValue = parseInt(timerDisplay.value);
-        if (timerDisplayValue !== initialTime) {
-            userEnteredValue = true;
+        if (timerDisplay.value !== '') {
+            const timerValue = timerDisplay.value.split(':');
+            seconds = parseInt(timerValue[0]) * 60 + parseInt(timerValue[1]);
         }
-        if (userEnteredValue) {
-            // Don't reset the timer to the initial value
-            startTimer();
-        } else {
-            // Reset the timer to the initial value
-            seconds = initialTime;
-            updateTimerDisplay();
-            startTimer();
-        }
+        startTimer();
         startButton.innerText = 'Pausar';
     } else if (isRunning && !isPaused) {
         pauseTimer();
-        startButton.innerText = 'Continuar';
     } else if (isRunning && isPaused) {
         resumeTimer();
-        startButton.innerText = 'Pausar';
     }
 });
 
 stopButton.addEventListener('click', () => {
     stopTimer();
-    seconds = initialTime; // Reset the timer to initial time
-    updateTimerDisplay();
     startButton.innerText = 'Iniciar';
 });
 
-// Initialize the display with the correct time
-updateTimerDisplay();
+resetButton.addEventListener('click', () => {
+    resetTimer();
+});
 
-// Event listener to the timerDisplay input field to track user input
-timerDisplay.addEventListener('input', () => {
-    userEnteredValue = true;
-  });
+// Initialize the timer display
+updateTimerDisplay();
