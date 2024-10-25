@@ -1,9 +1,21 @@
 // Variables
 let initialTime = 3 * 60; // 25 minutes in seconds
+
+const urlParams = new URLSearchParams(window.location.search);
+const timeParam = urlParams.get('time');
+if (timeParam) {
+  initialTime = parseInt(timeParam) * 60; // convertir minutos a segundos
+}
+
 let seconds = initialTime;
 let isRunning = false;
 let isPaused = false;
 let timerInterval;
+
+
+
+// Get the sound bell
+const bellSound = document.getElementById('bell-sound');
 
 // Get the timer display element
 const timerDisplay = document.getElementById('timer-display');
